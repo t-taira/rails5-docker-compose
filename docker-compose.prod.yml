@@ -1,0 +1,70 @@
+version: '2'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      RAILS_SERVE_STATIC_FILES: 'true'
+      MYAPP_SECRET_KEY_BASE: $MYAPP_SECRET_KEY_BASE
+      MYAPP_DATABASE_USERNAME: app
+      MYAPP_DATABASE_PASSWORD: $MYAPP_DATABASE_PASSWORD
+      MYAPP_DATABASE_HOST: db
+      MYAPP_SLACK_API_TOKEN: $MYAPP_SLACK_API_TOKEN
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://logs3.papertrailapp.com:xxx"
+  web:
+    extends:
+      service: app
+    command: bundle exec puma -C config/puma.rb
+    links:
+      - db
+      - redis
+  worker:
+    extends:
+      service: app
+    command: bundle exec sidekiq -q notification
+    links:
+      - db
+      - redis
+
+  nginx:
+    build: ./nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    links:
+      - web
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://logs3.papertrailapp.com:xxx"
+
+  db:
+    image: mysql
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYAPP_DATABASE_PASSWORD
+      MYSQL_DATABASE: myapp_production
+      MYSQL_USER: driver
+      MYSQL_PASSWORD: $MYAPP_DATABASE_PASSWORD
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://logs3.papertrailapp.com:xxx"
+
+  redis:
+    image: redis:3.0.5
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://logs3.papertrailapp.com:xxx"
+
+volumes:
+  db-data:
+    driver: local
