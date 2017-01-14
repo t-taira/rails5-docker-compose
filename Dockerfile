@@ -1,4 +1,4 @@
-FROM ruby:2.3.1-alpine
+FROM ruby:2.3.3-alpine
 ENV BUNDLE_PATH /bundle
 ENV BUILD_PACKAGES="curl-dev ruby-dev build-base bash git" \
       DEV_PACKAGES="zlib-dev libxml2-dev libxslt-dev tzdata yaml-dev mysql-dev imagemagick" \
