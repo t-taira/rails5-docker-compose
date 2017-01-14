@@ -13,9 +13,10 @@ default: &default
   adapter: mysql2
   encoding: utf8
   pool: 5
-  username: <%= ENV['MYAPP_DATABASE_HOST'] %>
+  username: <%= ENV['MYAPP_DATABASE_USERNAME'] %>
   password: <%= ENV['MYAPP_DATABASE_PASSWORD'] %>
   host: <%= ENV['MYAPP_DATABASE_HOST'] %>
+  port: <%= ENV['MYAPP_DATABASE_PORT'] || 3306 %>
 
 development:
   <<: *default
