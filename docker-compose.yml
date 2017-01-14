@@ -6,6 +6,8 @@ services:
       MYSQL_ROOT_PASSWORD: $MYAPP_DATABASE_PASSWORD
     volumes:
       - db-data:/var/lib/mysql
+    ports:
+      - "13306:3306"
   redis:
     image: redis:3.2.0-alpine
   app:
@@ -16,14 +18,13 @@ services:
       MYAPP_DATABASE_USERNAME: root
       MYAPP_DATABASE_PASSWORD: $MYAPP_DATABASE_PASSWORD
       MYAPP_DATABASE_HOST: db
-      MYAPP_SLACK_API_TOKEN: $MYAPP_SLACK_API_TOKEN
   web:
     extends:
       service: app
     #command: bundle exec rails s -p 3000 -b '0.0.0.0'
     command: /bin/bash -c 'bundle exec rake assets:precompile; script/web-start'
     ports:
-      - "3000:3000"
+      - "13000:3000"
     links:
       - db
       - redis
