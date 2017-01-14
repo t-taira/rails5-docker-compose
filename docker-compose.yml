@@ -7,9 +7,11 @@ services:
     volumes:
       - db-data:/var/lib/mysql
   redis:
-    image: redis:3.0.5
+    image: redis:3.2.0-alpine
   app:
     build: .
+    volumes:
+      - bundle:/bundle
     environment:
       MYAPP_DATABASE_USERNAME: root
       MYAPP_DATABASE_PASSWORD: $MYAPP_DATABASE_PASSWORD
@@ -18,9 +20,8 @@ services:
   web:
     extends:
       service: app
-    command: bundle exec rails s -p 3000 -b '0.0.0.0'
-    volumes:
-      - .:/myapp
+    #command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    command: /bin/bash -c 'bundle exec rake assets:precompile; script/web-start'
     ports:
       - "3000:3000"
     links:
@@ -29,13 +30,14 @@ services:
   worker:
     extends:
       service: app
-    command: bundle exec sidekiq -q notification
-    volumes:
-      - .:/myapp
+    #command: bundle exec sidekiq -q notification
+    command: script/sidekiq-start
     links:
       - db
       - redis
 
 volumes:
   db-data:
+    driver: local
+  bundle:
     driver: local
